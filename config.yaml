@@ -1,0 +1,14 @@
+credentials:
+  usernames:
+    jsmith:
+      email: jsmith@example.com
+      name: John Smith
+      password: "$2b$12$fcEjN6R8OxkGQ8iMH9xEjOuqkOEey1TQXZ4neWyxv2ervau4IvmVW" # Replace with the output of generate_keys.py
+    rdoe:
+      email: rdoe@example.com
+      name: Rebecca Doe
+      password: "$2b$12$8JlptIQu5N9CtFyRYqMxGO9Z5o2DE/4LtUMnB3QPnHxWzJdj/eYDq" # Replace with the output of generate_keys.py
+cookie:
+  expiry_days: 30
+  key: "some_random_key" # Can be any random string
+  name: "some_cookie_name"

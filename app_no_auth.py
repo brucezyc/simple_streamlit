@@ -5,33 +5,22 @@ import altair as alt
 import time
 import os
 import streamlit.components.v1 as components
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
 
 # -----------------------------------------------------------------------------
 # 1. APP CONFIGURATION - MUST BE THE FIRST STREAMLIT COMMAND
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Pro Sales Dashboard",
+    page_title="Pro Sales Dashboard (MVP)",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # -----------------------------------------------------------------------------
-# 2. HELPER FUNCTIONS & SETUP
+# 2. MAIN APPLICATION
 # -----------------------------------------------------------------------------
-# Get the absolute path to the directory of the current script
-_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def load_config(file_path):
-    """Loads the configuration from a YAML file."""
-    with open(file_path) as file:
-        return yaml.load(file, Loader=SafeLoader)
-
 def main():
-    """The main function that runs the Streamlit dashboard after authentication."""
+    """The main function that runs the Streamlit dashboard."""
     
     # --- SESSION STATE INITIALIZATION ---
     if "sales_data" not in st.session_state:
@@ -49,11 +38,7 @@ def main():
 
     # --- SIDEBAR CONTROLS ---
     with st.sidebar:
-        st.title(f"Welcome *{st.session_state['name']}*")
-        authenticator.logout('Logout', 'sidebar')
-        st.divider()
-        
-        st.header("⚙️ Configuration")
+        st.title("⚙️ Configuration")
         st.subheader("Global Filters")
         
         # Product Filter
@@ -77,7 +62,20 @@ def main():
         st.subheader("Display Settings")
         show_raw_data = st.toggle("Show Raw Data Tab", True)
         theme_color = st.color_picker("Chart Theme Color", "#2E86C1")
-        st.info("💡 Tip: Double-click cells in the table to edit data.")
+        
+        # Inject custom CSS for multiselect tags
+        st.markdown(
+            f"""
+            <style>
+            span[data-baseweb="tag"] {{
+                background-color: {theme_color} !important;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # st.info("💡 Tip: Double-click cells in the table to edit data.")
 
     # --- DATA PROCESSING ---
     df_filtered = st.session_state.sales_data.copy()
@@ -159,12 +157,14 @@ def main():
 
     with tab_map["📄 From HTML"]:
         st.subheader("Embedded HTML Content")
+        # Get the absolute path to the directory of the current script
+        _CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
         html_file_path = os.path.join(_CURRENT_DIR, 'partial.html')
         try:
             with open(html_file_path, 'r', encoding='utf-8') as f:
                 components.html(f.read(), height=300, scrolling=True)
         except FileNotFoundError:
-            st.error(f"The 'partial.html' file was not found at {html_file_path}.")
+            st.error(f"The 'partial.html' file was not found. Please ensure it is in the same directory.")
 
     # --- EXPORT SECTION ---
     st.divider()
@@ -173,21 +173,7 @@ def main():
         st.download_button(label="Download CSV", data=csv, file_name='sales_dashboard_export.csv', mime='text/csv')
 
 # -----------------------------------------------------------------------------
-# 3. AUTHENTICATION LOGIC
+# 3. SCRIPT EXECUTION
 # -----------------------------------------------------------------------------
-config = load_config(os.path.join(_CURRENT_DIR, 'config.yaml'))
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days']
-)
-
-authenticator.login()
-
-if st.session_state["authentication_status"]:
+if __name__ == "__main__":
     main()
-elif st.session_state["authentication_status"] is False:
-    st.error('Username/password is incorrect')
-elif st.session_state["authentication_status"] is None:
-    st.warning('Please enter your username and password')
